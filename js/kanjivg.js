@@ -12,10 +12,22 @@ export function codepointHex(char) {
   return char.codePointAt(0).toString(16).padStart(5, '0');
 }
 
+const cache = new Map();
+
 // Returns { char, strokes: [{ d, points: [{x, y}, ...] }, ...] }
 // `d` is the raw SVG path (used for drawing the guide);
 // `points` are samples along it (used for grading).
-export async function loadKanji(char, baseUrl = 'data/kanjivg/') {
+// Results are cached, so loading the same character twice is free.
+export function loadKanji(char, baseUrl = 'data/kanjivg/') {
+  if (!cache.has(char)) {
+    const p = fetchKanji(char, baseUrl);
+    p.catch(() => cache.delete(char)); // allow a retry after a failure
+    cache.set(char, p);
+  }
+  return cache.get(char);
+}
+
+async function fetchKanji(char, baseUrl) {
   const hex = codepointHex(char);
   const res = await fetch(`${baseUrl}${hex}.svg`);
   if (!res.ok) throw new Error(`No KanjiVG data for ${char} (${hex}.svg)`);

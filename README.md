@@ -3,14 +3,31 @@
 Japanese handwriting practice for iPad + Apple Pencil and Android styluses.
 It runs in the browser, so there's nothing to install.
 
-Lesson flow (being built step by step):
+## Lesson flow
 
-1. Trace a new kanji 3 times, then write it freehand.
-2. Trace a sentence that uses it once, then write the sentence freehand in
-   grid boxes. Kanji you haven't covered yet are shown as hiragana.
-3. Every stroke is checked for order, direction and shape.
+For each new kanji:
 
-Content comes from the Kaishi 1.5k deck, introducing kanji in deck order.
+1. **Trace** it 3 times over a gray outline.
+2. **Freehand**: write it in an empty box.
+3. **Trace sentence**: one box per character, each with its outline.
+4. **Write sentence**: the same boxes with no outline.
+
+Every stroke is checked for order, direction and shape.
+
+In sentences:
+
+- Words containing kanji you haven't learned yet are written in **hiragana**
+  (a dotted line under the box). Pressing **Check** reveals the real
+  sentence with those words highlighted.
+- **Kanji boxes block** (a red bar on top): a wrong stroke is rejected and you
+  redo it. You can't move on until they're right.
+- **Kana boxes don't block**: mistakes are kept and outlined in red when you
+  press Check. (Set `KANA_BLOCKS: true` in `js/config.js` to change this.)
+
+Finished kanji are remembered on the device (browser storage).
+
+Content: sample lessons in `js/lessons.js` for now; the Kaishi 1.5k deck
+comes next, introducing kanji in deck order.
 
 ## Running it locally
 
@@ -39,9 +56,14 @@ There are no dependencies to install.
 | `js/config.js` | **All grading tolerances.** Tune strictness here. |
 | `js/geometry.js` | Pure math: stroke length, resampling, distances, direction similarity. |
 | `js/matcher.js` | Decides if a stroke is right, and why not (order, direction, position, shape, length). |
+| `js/session.js` | One character being written: next stroke, mistakes, blocking vs feedback-only. |
+| `js/furigana.js` | Parses Anki furigana (`食[た]べる`) and decides which words become hiragana. |
+| `js/lessons.js` | The lesson list (sample lessons for now). |
+| `js/progress.js` | Remembers finished kanji on the device. |
 | `js/kanjivg.js` | Loads a kanji's strokes from a KanjiVG SVG file. |
 | `js/inkpad.js` | The writing canvas: pen input, palm rejection, drawing. |
-| `js/app.js` | Wires it together into the practice page. |
+| `js/app.js` | The lesson flow and page UI. Add `?debug=1` to the URL for grading numbers. |
+| `tools/fetch-kanjivg.mjs` | Downloads stroke files for every character the lessons use. |
 | `data/kanjivg/` | KanjiVG stroke files, named by code point (`098df.svg` = 食). |
 
 ### How a stroke is graded

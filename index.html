@@ -10,30 +10,31 @@
 <body>
   <header>
     <h1>書き Katalyst</h1>
-    <p class="sub">Stroke practice (step 1 test page)</p>
+    <div class="controls">
+      <label>Lesson <select id="lesson"></select></label>
+      <button id="restart">Restart step</button>
+    </div>
+    <ol id="stages" aria-label="Lesson steps"></ol>
   </header>
 
   <main>
-    <div class="controls">
-      <label>Kanji
-        <select id="kanji">
-          <option value="食">食 (9 strokes)</option>
-          <option value="人">人 (2 strokes)</option>
-          <option value="水">水 (4 strokes)</option>
-        </select>
-      </label>
-      <div class="segmented" role="group" aria-label="Mode">
-        <button data-mode="trace" aria-pressed="true">Trace</button>
-        <button data-mode="freehand" aria-pressed="false">Freehand</button>
-      </div>
-      <button id="hint">Hint</button>
-      <button id="restart">Restart</button>
-    </div>
+    <!-- Steps 1-4: one big box for the new kanji -->
+    <section id="single" hidden>
+      <canvas id="pad" aria-label="Writing area"></canvas>
+      <div class="controls"><button id="hint">Hint</button></div>
+    </section>
 
-    <canvas id="pad" aria-label="Writing area"></canvas>
+    <!-- Steps 5-6: the sentence, one box per character -->
+    <section id="sentence" hidden>
+      <p id="prompt"></p>
+      <div id="boxes"></div>
+      <p id="answer" hidden></p>
+      <div class="controls"><button id="check">Check</button></div>
+    </section>
 
     <p id="status" role="status" aria-live="polite"></p>
     <p id="result" hidden></p>
+    <div class="controls"><button id="next" class="primary" hidden>Next</button></div>
     <div id="debug" hidden></div>
   </main>
 
