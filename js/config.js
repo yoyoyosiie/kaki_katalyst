@@ -55,5 +55,17 @@ export const SETTINGS = {
       MAX_ENDPOINT_DISTANCE: 26,
       MIN_DIRECTION_SIMILARITY: 0.5,
     },
+    // Sentence boxes are much smaller than the big box, so the same
+    // wobble of your hand is a bigger fraction of the character.
+    'sentence-trace': {
+      MAX_AVG_DISTANCE: 16,
+      MAX_ENDPOINT_DISTANCE: 25,
+      MIN_DIRECTION_SIMILARITY: 0.45,
+    },
+    'sentence-freehand': {
+      MAX_AVG_DISTANCE: 22,
+      MAX_ENDPOINT_DISTANCE: 32,
+      MIN_DIRECTION_SIMILARITY: 0.4,
+    },
   },
 };

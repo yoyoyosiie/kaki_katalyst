@@ -40,6 +40,7 @@ export class InkPad {
 
     this.activePointer = null;
     this.locked = false; // true = ignore all input
+    this.paper = COLORS.paper; // background color (sentence highlights kanji boxes)
 
     this.bindInput();
     new ResizeObserver(() => this.resize()).observe(canvas);
@@ -152,7 +153,7 @@ export class InkPad {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
-    ctx.fillStyle = COLORS.paper;
+    ctx.fillStyle = this.paper;
     ctx.fillRect(0, 0, BOX_SIZE, BOX_SIZE);
     this.drawGrid();
 

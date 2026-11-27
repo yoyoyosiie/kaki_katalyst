@@ -143,12 +143,18 @@ async function startSentence(stage) {
   $('answer').hidden = true;
   $('check').hidden = false;
 
-  // What to write. Tracing has the outline in each box; writing freehand
-  // shows the sentence as text (with unknown kanji in hiragana) but no outline.
-  const text = layout.map((b) => b.char).join('');
+  // What to write. Tracing has the outline in each box. Writing freehand
+  // shows the whole sentence in kana: words you should write in kanji are
+  // highlighted (as are their boxes), so the prompt doesn't give the kanji away.
+  const hiddenSegs = new Set(layout.filter((b) => b.hidden).map((b) => b.segment));
+  const promptText = segments.map((seg, i) => {
+    if (!seg.reading) return seg.text;
+    if (hiddenSegs.has(i)) return seg.reading;
+    return `<mark>${seg.reading}</mark>`; // write this in kanji
+  }).join('');
   $('prompt').innerHTML = stage.mode === 'trace'
     ? `${state.lesson.english}`
-    : `<span class="jp">${text}</span><br>${state.lesson.english}`;
+    : `<span class="jp">${promptText}</span><br>Write the <mark>highlighted</mark> words in kanji. ${state.lesson.english}`;
 
   const container = $('boxes');
   container.innerHTML = '';
@@ -177,10 +183,11 @@ async function startSentence(stage) {
     box.session = new CharSession({
       char: b.char,
       strokes: kanji.strokes,
-      mode: stage.mode,
+      mode: `sentence-${stage.mode}`, // looser tolerances for small boxes
       blocking: isKanji(b.char) || SETTINGS.KANA_BLOCKS,
     });
     if (box.session.blocking) el.classList.add('blocking');
+    if (isKanji(b.char)) box.pad.paper = '#fbe3c4'; // matches --highlight in CSS
     box.pad.setGuide(kanji.strokes, stage.mode === 'trace');
     return box;
   }));
@@ -252,6 +259,9 @@ async function startStage() {
   $('result').hidden = true;
   $('single').hidden = stage.kind !== 'single';
   $('sentence').hidden = stage.kind !== 'sentence';
+  $('hint').hidden = stage.kind !== 'single';
+  $('check').hidden = stage.kind !== 'sentence';
+  document.body.className = `stage-${stage.kind}`;
   renderStages();
   setStatus('Loading…');
   try {
@@ -269,6 +279,9 @@ function finishLesson() {
   renderStages();
   $('single').hidden = true;
   $('sentence').hidden = true;
+  $('hint').hidden = true;
+  $('check').hidden = true;
+  document.body.className = '';
   const nextIndex = LESSONS.indexOf(state.lesson) + 1;
   setStatus(`${state.lesson.kanji} learned!`, 'good');
   if (nextIndex < LESSONS.length) showNext(`Next lesson: ${LESSONS[nextIndex].kanji}`);

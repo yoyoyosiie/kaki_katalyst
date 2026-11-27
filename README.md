@@ -10,7 +10,9 @@ For each new kanji:
 1. **Trace** it 3 times over a gray outline.
 2. **Freehand**: write it in an empty box.
 3. **Trace sentence**: one box per character, each with its outline.
-4. **Write sentence**: the same boxes with no outline.
+4. **Write sentence**: the same boxes with no outline. The prompt shows the
+   sentence in kana only; words to write in kanji are highlighted, and so
+   are their boxes.
 
 Every stroke is checked for order, direction and shape.
 
@@ -19,7 +21,9 @@ In sentences:
 - Words containing kanji you haven't learned yet are written in **hiragana**
   (a dotted line under the box). Pressing **Check** reveals the real
   sentence with those words highlighted.
-- **Kanji boxes block** (a red bar on top): a wrong stroke is rejected and you
+- Sentence boxes use looser tolerances than the big box (`sentence-trace`
+  and `sentence-freehand` in `js/config.js`), since they're smaller.
+- **Kanji boxes block** (highlighted, with a red bar on top): a wrong stroke is rejected and you
   redo it. You can't move on until they're right.
 - **Kana boxes don't block**: mistakes are kept and outlined in red when you
   press Check. (Set `KANA_BLOCKS: true` in `js/config.js` to change this.)
