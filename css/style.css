@@ -29,13 +29,43 @@ body {
   padding: 16px;
 }
 
-header { text-align: center; }
+header {
+  text-align: center;
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
 h1 { margin: 0; font-size: 1.6rem; }
-.sub { margin: 4px 0 12px; color: var(--muted); font-size: 0.9rem; }
+
+/* Lesson progress: Trace 1 · Trace 2 · ... */
+#stages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+#stages li {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  background: #fff;
+}
+#stages li.done { color: var(--good); border-color: var(--good); }
+#stages li.done::before { content: "✓ "; }
+#stages li.current { background: var(--accent); border-color: var(--accent); color: #fff; }
 
 main {
   width: 100%;
-  max-width: 640px;
+  max-width: 1100px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -61,20 +91,91 @@ button, select {
   min-height: 44px; /* comfortable touch target */
 }
 
-.segmented { display: flex; }
-.segmented button { border-radius: 0; }
-.segmented button:first-child { border-radius: 8px 0 0 8px; }
-.segmented button:last-child { border-radius: 0 8px 8px 0; border-left: none; }
-.segmented button[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+
+section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+section[hidden] { display: none; }
 
 /* Square writing area that fits the screen, leaving room for the controls. */
 #pad {
-  width: min(100%, calc(100vh - 260px), 600px);
+  width: min(100%, calc(100vh - 330px), 600px);
   aspect-ratio: 1 / 1;
   border-radius: 6px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
   touch-action: none; /* we handle every touch ourselves */
 }
+
+/* ---- sentence ---- */
+#prompt { margin: 0; text-align: center; color: var(--muted); line-height: 1.6; }
+#prompt .jp { font-size: 1.5rem; color: var(--text); letter-spacing: 0.1em; }
+
+/* One square box per character; boxes wrap onto more rows if needed. */
+#boxes {
+  --gap: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--gap);
+  width: 100%;
+}
+.box {
+  position: relative;
+  /* Fit the sentence on one row when possible, but never smaller than 96px:
+     a pen needs room. Long sentences wrap onto a second row. */
+  width: clamp(96px, calc((min(100vw, 1100px) - 32px) / var(--n) - var(--gap)), 140px);
+  border-radius: 4px;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+.box canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  touch-action: none;
+}
+/* Kanji boxes block progress until correct: a thin accent marker on top. */
+.box.blocking::before {
+  content: "";
+  position: absolute;
+  top: -5px; left: 20%; right: 20%;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+/* Hiragana standing in for a kanji you haven't learned yet. */
+.box.hidden-kanji::after {
+  content: "";
+  position: absolute;
+  bottom: -6px; left: 10%; right: 10%;
+  border-bottom: 2px dotted var(--muted);
+}
+/* Characters with no stroke data are printed, not written. */
+.box.printed canvas { opacity: 0.6; }
+.box.printed::before {
+  content: attr(data-char);
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 2rem;
+  color: var(--muted);
+  pointer-events: none;
+}
+.box.ok { outline-color: var(--good); }
+.box.error { outline-color: var(--bad); }
+.box.needs { outline-color: var(--accent); outline-style: dashed; }
+
+#answer { margin: 0; font-size: 1.6rem; text-align: center; line-height: 2.2; }
+#answer rt { font-size: 0.45em; color: var(--muted); }
+#answer mark { background: #fbe3c4; border-radius: 4px; padding: 0 2px; }
 
 #status { margin: 0; min-height: 1.4em; text-align: center; }
 #status[data-tone="good"] { color: var(--good); }

@@ -27,6 +27,14 @@ export const SETTINGS = {
   // After this many failed attempts on the same stroke, show a hint.
   HINT_AFTER_FAILS: 2,
 
+  // In sentences, kanji boxes always block (a wrong stroke must be redone).
+  // Kana boxes are feedback-only: mistakes are kept and shown on Check.
+  // Set this to true to make kana block too.
+  KANA_BLOCKS: false,
+
+  // How many times you trace a new kanji before writing it freehand.
+  TRACE_REPEATS: 3,
+
   // Your stroke's length must be within this ratio of the model's length.
   LENGTH_RATIO_MIN: 0.4,
   LENGTH_RATIO_MAX: 2.0,

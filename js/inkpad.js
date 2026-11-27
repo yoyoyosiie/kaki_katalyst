@@ -21,6 +21,10 @@ const COLORS = {
   hint: '#e0892b',
 };
 
+// Shared by every pad on the page: once a pen touches any of them, finger
+// touches are ignored everywhere (your palm rests across several boxes).
+let penSeen = false;
+
 export class InkPad {
   constructor(canvas, { onStrokeEnd }) {
     this.canvas = canvas;
@@ -35,7 +39,7 @@ export class InkPad {
     this.current = null; // stroke being drawn right now
 
     this.activePointer = null;
-    this.penSeen = false;
+    this.locked = false; // true = ignore all input
 
     this.bindInput();
     new ResizeObserver(() => this.resize()).observe(canvas);
@@ -87,8 +91,8 @@ export class InkPad {
   }
 
   ignore(e) {
-    if (e.pointerType === 'pen') this.penSeen = true;
-    return this.penSeen && e.pointerType === 'touch';
+    if (e.pointerType === 'pen') penSeen = true;
+    return this.locked || (penSeen && e.pointerType === 'touch');
   }
 
   onDown(e) {
