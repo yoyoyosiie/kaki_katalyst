@@ -1,0 +1,47 @@
+// All the grading knobs live here, so you can tune how strict the app is
+// without touching the matching logic.
+//
+// Units: everything is measured in KanjiVG's coordinate box, which is
+// 109 x 109 units for the whole character. So a tolerance of 10 means
+// "about 9% of the character's width".
+
+export const BOX_SIZE = 109;
+
+export const SETTINGS = {
+  // Every stroke (yours and the model's) is resampled to this many evenly
+  // spaced points before comparing. More points = smoother comparison,
+  // slightly more work. 32 is plenty for a single stroke.
+  SAMPLE_POINTS: 32,
+
+  // Strokes shorter than this are treated as accidental taps and ignored.
+  MIN_STROKE_LENGTH: 2,
+
+  // Model strokes shorter than this (dots, ticks) skip the direction and
+  // length checks, because a tiny wobble flips their direction completely.
+  SHORT_STROKE_LENGTH: 15,
+
+  // After this many failed attempts on the same stroke, show a hint.
+  HINT_AFTER_FAILS: 2,
+
+  // Your stroke's length must be within this ratio of the model's length.
+  LENGTH_RATIO_MIN: 0.5,
+  LENGTH_RATIO_MAX: 1.8,
+
+  // Per-mode tolerances. Tracing has a guide to follow, so it is stricter.
+  modes: {
+    trace: {
+      // Mean distance between matching points of your stroke and the model.
+      MAX_AVG_DISTANCE: 9,
+      // How far your start and end points may be from the model's.
+      MAX_ENDPOINT_DISTANCE: 15,
+      // Average cosine similarity of segment directions (1 = identical,
+      // 0 = perpendicular, -1 = opposite).
+      MIN_DIRECTION_SIMILARITY: 0.7,
+    },
+    freehand: {
+      MAX_AVG_DISTANCE: 15,
+      MAX_ENDPOINT_DISTANCE: 22,
+      MIN_DIRECTION_SIMILARITY: 0.6,
+    },
+  },
+};
