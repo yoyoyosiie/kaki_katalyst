@@ -24,3 +24,29 @@ export function markCovered(char) {
 export function resetProgress() {
   try { localStorage.removeItem(KEY); } catch { /* ignore */ }
 }
+
+// ---- imported deck ---------------------------------------------------------
+// Lessons built from your Anki export live on this device only, so the deck
+// itself never goes into the (public) repository.
+
+const LESSONS_KEY = 'kaki.lessons';
+
+export function getImportedLessons() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LESSONS_KEY) || 'null');
+    return Array.isArray(saved) && saved.length ? saved : null;
+  } catch {
+    return null;
+  }
+}
+
+// Returns false if the browser refused to store them (they still work until
+// the page is closed).
+export function saveImportedLessons(lessons) {
+  try {
+    localStorage.setItem(LESSONS_KEY, JSON.stringify(lessons));
+    return true;
+  } catch {
+    return false;
+  }
+}

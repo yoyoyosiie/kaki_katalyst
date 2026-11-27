@@ -7,8 +7,12 @@ import { loadKanji } from './kanjivg.js';
 import { InkPad } from './inkpad.js';
 import { CharSession, reasonText } from './session.js';
 import { parseFurigana, writingBoxes, isKanji } from './furigana.js';
-import { getCovered, markCovered } from './progress.js';
-import { LESSONS } from './lessons.js';
+import { getCovered, markCovered, getImportedLessons, saveImportedLessons } from './progress.js';
+import { SAMPLE_LESSONS } from './lessons.js';
+import { lessonsFromExport } from './deck.js';
+
+// Your imported Kaishi lessons if there are any, otherwise the samples.
+let LESSONS = getImportedLessons() || SAMPLE_LESSONS;
 
 const $ = (id) => document.getElementById(id);
 
@@ -74,7 +78,8 @@ function renderStages() {
 
 function renderLessonPicker() {
   $('lesson').innerHTML = LESSONS.map((l, i) =>
-    `<option value="${i}">${l.kanji}${state.covered.has(l.kanji) ? ' ✓' : ''}</option>`).join('');
+    `<option value="${i}">${i + 1}. ${l.kanji}${l.word ? ` (${l.word})` : ''}` +
+    `${state.covered.has(l.kanji) ? ' ✓' : ''}</option>`).join('');
   if (state.lesson) $('lesson').value = String(LESSONS.indexOf(state.lesson));
 }
 
@@ -171,10 +176,13 @@ async function startSentence(stage) {
 
     const box = { ...b, el, session: null, pad: null };
     let kanji = null;
-    try { kanji = await loadKanji(b.char); } catch { /* no stroke data */ }
+    if (!b.given) {
+      try { kanji = await loadKanji(b.char); } catch { /* no stroke data */ }
+    }
     box.pad = new InkPad(canvas, { onStrokeEnd: (pts, info) => onBoxStroke(box, i, pts, info) });
-    if (!kanji) {
-      // No stroke data: print the character and don't grade it.
+    if (!kanji || b.given) {
+      // No stroke data, or a kanji you haven't learned that the deck gave no
+      // reading for: print the character and don't grade it.
       el.classList.add('printed');
       el.dataset.char = b.char;
       box.pad.locked = true;
@@ -306,17 +314,45 @@ $('restart').addEventListener('click', () => {
 
 $('lesson').addEventListener('change', (e) => startLesson(Number(e.target.value)));
 
+// ---- importing the deck -----------------------------------------------------
+
+$('import').addEventListener('click', () => $('import-file').click());
+$('import-file').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  e.target.value = ''; // allow re-importing the same file
+  if (!file) return;
+  try {
+    const { lessons, notes } = lessonsFromExport(await file.text());
+    if (!lessons.length) throw new Error('No kanji found in that file.');
+    LESSONS = lessons;
+    const saved = saveImportedLessons(lessons);
+    renderLessonPicker();
+    await startLesson(firstUncovered());
+    setStatus(`Imported ${lessons.length} kanji lessons from ${notes} cards.` +
+      (saved ? '' : ' (This browser won\'t save them; you\'ll need to import again next time.)'), 'good');
+  } catch (err) {
+    setStatus(`Import failed: ${err.message}`, 'bad');
+  }
+});
+
+function firstUncovered() {
+  const i = LESSONS.findIndex((l) => !state.covered.has(l.kanji));
+  return i === -1 ? 0 : i;
+}
+
 function startLesson(index) {
   state.lesson = LESSONS[index];
   state.stage = 0;
   $('lesson').value = String(index);
-  startStage();
+  return startStage();
 }
 
 // Handy for automated tests and for poking at things in the console.
 window.kakiApp = { state, pad, STAGES };
 
 renderLessonPicker();
-// Start at the first lesson you haven't finished.
-const firstNew = LESSONS.findIndex((l) => !state.covered.has(l.kanji));
-startLesson(firstNew === -1 ? 0 : firstNew);
+startLesson(firstUncovered()).then(() => { // the first lesson you haven't finished
+  if (LESSONS === SAMPLE_LESSONS) {
+    setStatus('Sample lessons. Press "Import deck" to load your Kaishi 1.5k export.');
+  }
+});
