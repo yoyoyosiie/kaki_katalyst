@@ -6,6 +6,7 @@
   --good: #2f7d4f;
   --bad: #c0392b;
   --line: #d9cfc0;
+  --highlight: #fbe3c4; /* kanji to write: prompt text and their boxes */
 }
 
 * { box-sizing: border-box; }
@@ -72,6 +73,36 @@ main {
   gap: 12px;
 }
 
+#panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Single-kanji steps: box on the left, panel on the right, so Hint and Next
+   are reachable without scrolling. Stacks on narrow (phone) screens. */
+body.stage-single main {
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 16px;
+}
+body.stage-single #panel {
+  width: 220px;
+  align-items: stretch;
+  text-align: left;
+}
+body.stage-single #panel .controls { flex-direction: column; align-items: stretch; }
+body.stage-single #panel button { min-height: 56px; font-size: 1.1rem; }
+body.stage-single #status, body.stage-single #result { text-align: left; }
+
+@media (max-width: 600px) {
+  body.stage-single main { flex-direction: column; align-items: center; }
+  body.stage-single #panel { width: 100%; }
+  body.stage-single #pad { width: min(100%, calc(100vh - 320px)); }
+}
+
 .controls {
   display: flex;
   flex-wrap: wrap;
@@ -104,7 +135,7 @@ section[hidden] { display: none; }
 
 /* Square writing area that fits the screen, leaving room for the controls. */
 #pad {
-  width: min(100%, calc(100vh - 330px), 600px);
+  width: min(100%, calc(100vw - 32px - 220px - 16px), calc(100vh - 220px), 640px);
   aspect-ratio: 1 / 1;
   border-radius: 6px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
@@ -175,7 +206,7 @@ section[hidden] { display: none; }
 
 #answer { margin: 0; font-size: 1.6rem; text-align: center; line-height: 2.2; }
 #answer rt { font-size: 0.45em; color: var(--muted); }
-#answer mark { background: #fbe3c4; border-radius: 4px; padding: 0 2px; }
+#prompt mark, #answer mark { background: var(--highlight); border-radius: 4px; padding: 0 2px; }
 
 #status { margin: 0; min-height: 1.4em; text-align: center; }
 #status[data-tone="good"] { color: var(--good); }
