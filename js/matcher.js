@@ -3,59 +3,62 @@
 
 import { SETTINGS } from './config.js';
 import {
-  distance, strokeLength, resample, averageDistance, directionSimilarity,
+  distance, strokeLength, resample, averageDistance, directionSimilarity, simplify,
 } from './geometry.js';
 
 // Compare one drawn stroke against one model stroke.
 // `drawn` and `model` are arrays of {x, y} in KanjiVG box units.
-// Returns { pass, reason, avgDistance }.
+// Returns { pass, reason, avgDistance, metrics }.
 //   reason is one of: 'ok', 'backwards', 'position', 'shape', 'length'
+//   metrics holds every measured number (shown by the ?debug=1 readout).
 export function compareStroke(drawn, model, mode = 'trace') {
   const tol = SETTINGS.modes[mode];
   const n = SETTINGS.SAMPLE_POINTS;
-  const a = resample(drawn, n);
+  const cleaned = simplify(drawn, SETTINGS.MIN_POINT_SPACING);
+  const a = resample(cleaned, n);
   const b = resample(model, n);
 
   const modelLen = strokeLength(model);
-  const drawnLen = strokeLength(drawn);
   const isShort = modelLen < SETTINGS.SHORT_STROKE_LENGTH;
-  const avgDistance = averageDistance(a, b);
+  const metrics = {
+    rawPoints: drawn.length,
+    keptPoints: cleaned.length,
+    lengthRatio: strokeLength(cleaned) / modelLen,
+    startOffset: distance(a[0], b[0]),
+    endOffset: distance(a[n - 1], b[n - 1]),
+    avgDistance: averageDistance(a, b),
+    direction: directionSimilarity(a, b),
+    isShort,
+  };
+  const fail = (reason) => ({ pass: false, reason, avgDistance: metrics.avgDistance, metrics });
 
   // 1. Direction. Checked first because a backwards stroke would otherwise
   //    show up as a confusing "wrong position" error.
   //    Compare start->start + end->end against start->end + end->start.
   if (!isShort) {
-    const forward = distance(a[0], b[0]) + distance(a[n - 1], b[n - 1]);
     const reversed = distance(a[0], b[n - 1]) + distance(a[n - 1], b[0]);
-    if (reversed < forward) return { pass: false, reason: 'backwards', avgDistance };
+    if (reversed < metrics.startOffset + metrics.endOffset) return fail('backwards');
   }
 
   // 2. Start and end in the right places.
-  const startOff = distance(a[0], b[0]);
-  const endOff = distance(a[n - 1], b[n - 1]);
-  if (startOff > tol.MAX_ENDPOINT_DISTANCE || endOff > tol.MAX_ENDPOINT_DISTANCE) {
-    return { pass: false, reason: 'position', avgDistance };
+  if (metrics.startOffset > tol.MAX_ENDPOINT_DISTANCE || metrics.endOffset > tol.MAX_ENDPOINT_DISTANCE) {
+    return fail('position');
   }
 
   // 3. Overall closeness along the whole stroke.
-  if (avgDistance > tol.MAX_AVG_DISTANCE) {
-    return { pass: false, reason: 'position', avgDistance };
-  }
+  if (metrics.avgDistance > tol.MAX_AVG_DISTANCE) return fail('position');
 
   if (!isShort) {
     // 4. Length: catches strokes that start and end right but take a
     //    big detour, or are cut short.
-    const ratio = drawnLen / modelLen;
-    if (ratio < SETTINGS.LENGTH_RATIO_MIN || ratio > SETTINGS.LENGTH_RATIO_MAX) {
-      return { pass: false, reason: 'length', avgDistance };
+    if (metrics.lengthRatio < SETTINGS.LENGTH_RATIO_MIN || metrics.lengthRatio > SETTINGS.LENGTH_RATIO_MAX) {
+      return fail('length');
     }
     // 5. Shape: each small piece should point the same way as the model.
-    if (directionSimilarity(a, b) < tol.MIN_DIRECTION_SIMILARITY) {
-      return { pass: false, reason: 'shape', avgDistance };
-    }
+    if (metrics.direction < tol.MIN_DIRECTION_SIMILARITY) return fail('shape');
   }
 
-  return { pass: true, reason: 'ok', avgDistance };
+  return { pass: true, reason: 'ok', avgDistance: metrics.avgDistance, metrics };
 }
 
 // Check a drawn stroke given where you are in the character.
@@ -71,7 +74,7 @@ export function checkStroke(drawn, modelStrokes, expectedIndex, mode = 'trace') 
   // If so, that's a stroke-order mistake, not a shape mistake.
   for (let j = expectedIndex + 1; j < modelStrokes.length; j++) {
     if (compareStroke(drawn, modelStrokes[j], mode).pass) {
-      return { pass: false, reason: 'wrong-order', avgDistance: result.avgDistance, matchedIndex: j };
+      return { ...result, pass: false, reason: 'wrong-order', matchedIndex: j };
     }
   }
   return { ...result, matchedIndex: -1 };

@@ -95,6 +95,7 @@ export class InkPad {
     if (this.ignore(e) || this.activePointer !== null) return;
     e.preventDefault();
     this.activePointer = e.pointerId;
+    this.activeType = e.pointerType;
     // Keep receiving moves even if the pen slides off the canvas edge.
     try { this.canvas.setPointerCapture(e.pointerId); } catch { /* synthetic events */ }
     this.current = [this.toBox(e)];
@@ -116,7 +117,9 @@ export class InkPad {
     const points = this.current;
     this.current = null;
     this.render();
-    if (points && strokeLength(points) >= SETTINGS.MIN_STROKE_LENGTH) this.onStrokeEnd(points);
+    if (points && strokeLength(points) >= SETTINGS.MIN_STROKE_LENGTH) {
+      this.onStrokeEnd(points, { pointerType: this.activeType });
+    }
   }
 
   // Screen position -> KanjiVG box units.

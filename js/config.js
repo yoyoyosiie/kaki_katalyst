@@ -16,6 +16,10 @@ export const SETTINGS = {
   // Strokes shorter than this are treated as accidental taps and ignored.
   MIN_STROKE_LENGTH: 2,
 
+  // Before grading, drawn points closer together than this are dropped.
+  // Removes pen sensor jitter that otherwise inflates stroke length.
+  MIN_POINT_SPACING: 1.5,
+
   // Model strokes shorter than this (dots, ticks) skip the direction and
   // length checks, because a tiny wobble flips their direction completely.
   SHORT_STROKE_LENGTH: 15,
@@ -24,24 +28,24 @@ export const SETTINGS = {
   HINT_AFTER_FAILS: 2,
 
   // Your stroke's length must be within this ratio of the model's length.
-  LENGTH_RATIO_MIN: 0.5,
-  LENGTH_RATIO_MAX: 1.8,
+  LENGTH_RATIO_MIN: 0.4,
+  LENGTH_RATIO_MAX: 2.0,
 
   // Per-mode tolerances. Tracing has a guide to follow, so it is stricter.
   modes: {
     trace: {
       // Mean distance between matching points of your stroke and the model.
-      MAX_AVG_DISTANCE: 9,
+      MAX_AVG_DISTANCE: 12,
       // How far your start and end points may be from the model's.
-      MAX_ENDPOINT_DISTANCE: 15,
+      MAX_ENDPOINT_DISTANCE: 20,
       // Average cosine similarity of segment directions (1 = identical,
       // 0 = perpendicular, -1 = opposite).
-      MIN_DIRECTION_SIMILARITY: 0.7,
+      MIN_DIRECTION_SIMILARITY: 0.55,
     },
     freehand: {
-      MAX_AVG_DISTANCE: 15,
-      MAX_ENDPOINT_DISTANCE: 22,
-      MIN_DIRECTION_SIMILARITY: 0.6,
+      MAX_AVG_DISTANCE: 18,
+      MAX_ENDPOINT_DISTANCE: 26,
+      MIN_DIRECTION_SIMILARITY: 0.5,
     },
   },
 };

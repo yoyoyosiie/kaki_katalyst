@@ -48,7 +48,7 @@ test('a stroke with a big detour fails', () => {
 });
 
 test('freehand is more forgiving than trace', () => {
-  const off = horizontal.map((p) => ({ x: p.x, y: p.y + 12 }));
+  const off = horizontal.map((p) => ({ x: p.x, y: p.y + 15 }));
   assert.equal(compareStroke(off, horizontal, 'trace').pass, false);
   assert.equal(compareStroke(off, horizontal, 'freehand').pass, true);
 });
@@ -67,8 +67,23 @@ test('tiny dot strokes do not fail on direction', () => {
 });
 
 test('score counts first-try strokes', () => {
-  const s = scoreCharacter([{ tries: 1, avgDistance: 0 }, { tries: 3, avgDistance: 4.5 }], 'trace');
+  const s = scoreCharacter([{ tries: 1, avgDistance: 0 }, { tries: 3, avgDistance: 6 }], 'trace');
   assert.equal(s.total, 2);
   assert.equal(s.firstTry, 1);
   assert.equal(s.shapeAccuracy, 75);
+});
+
+test('dense, jittery pen input (like Apple Pencil at 240 Hz) still passes', () => {
+  // 200 samples along the line with +-0.8 units of sensor noise. Measured
+  // raw, this zig-zag is about twice the real length.
+  let seed = 1;
+  const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647) - 0.5;
+  const n = 200;
+  const dense = Array.from({ length: n }, (_, i) => ({
+    x: 20 + (70 * i) / (n - 1) + rand() * 1.6,
+    y: 55 + rand() * 1.6,
+  }));
+  assert.ok(strokeLength(dense) / 70 > 1.8, 'raw length should be inflated');
+  const r = compareStroke(dense, horizontal, 'trace');
+  assert.equal(r.pass, true, `failed on ${r.reason}`);
 });

@@ -18,6 +18,30 @@ const state = {
 
 const pad = new InkPad($('pad'), { onStrokeEnd });
 
+// Add ?debug=1 to the URL to see the numbers behind every grading decision.
+const DEBUG = new URLSearchParams(location.search).has('debug');
+$('debug').hidden = !DEBUG;
+
+function showDebug(result, n, info) {
+  if (!DEBUG) return;
+  const m = result.metrics;
+  const tol = SETTINGS.modes[state.mode];
+  const f = (v) => v.toFixed(2);
+  const row = (label, value, limit, ok) =>
+    `<tr class="${ok ? '' : 'over'}"><td>${label}</td><td>${value}</td><td>${limit}</td></tr>`;
+  const lenOk = m.isShort || (m.lengthRatio >= SETTINGS.LENGTH_RATIO_MIN && m.lengthRatio <= SETTINGS.LENGTH_RATIO_MAX);
+  $('debug').innerHTML =
+    `<p>Stroke ${n} · ${state.mode} · ${info.pointerType} · ${result.reason}` +
+    `${m.isShort ? ' · short stroke' : ''}<br>points: ${m.rawPoints} raw → ${m.keptPoints} kept</p>` +
+    '<table><tr><th>check</th><th>yours</th><th>limit</th></tr>' +
+    row('start offset', f(m.startOffset), `≤ ${tol.MAX_ENDPOINT_DISTANCE}`, m.startOffset <= tol.MAX_ENDPOINT_DISTANCE) +
+    row('end offset', f(m.endOffset), `≤ ${tol.MAX_ENDPOINT_DISTANCE}`, m.endOffset <= tol.MAX_ENDPOINT_DISTANCE) +
+    row('avg distance', f(m.avgDistance), `≤ ${tol.MAX_AVG_DISTANCE}`, m.avgDistance <= tol.MAX_AVG_DISTANCE) +
+    row('length ratio', f(m.lengthRatio), `${SETTINGS.LENGTH_RATIO_MIN}–${SETTINGS.LENGTH_RATIO_MAX}`, lenOk) +
+    row('direction', f(m.direction), `≥ ${tol.MIN_DIRECTION_SIMILARITY}`, m.isShort || m.direction >= tol.MIN_DIRECTION_SIMILARITY) +
+    '</table>';
+}
+
 function reasonText(result, n) {
   switch (result.reason) {
     case 'backwards': return `Stroke ${n} goes the other way.`;
@@ -28,13 +52,14 @@ function reasonText(result, n) {
   }
 }
 
-function onStrokeEnd(points) {
+function onStrokeEnd(points, info = { pointerType: '?' }) {
   const { kanji } = state;
   if (!kanji || state.index >= kanji.strokes.length) return;
 
   const models = kanji.strokes.map((s) => s.points);
   const n = state.index + 1;
   const result = checkStroke(points, models, state.index, state.mode);
+  showDebug(result, n, info);
 
   if (!result.pass) {
     state.fails++;
