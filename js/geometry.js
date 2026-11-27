@@ -74,3 +74,20 @@ export function directionSimilarity(a, b) {
   }
   return n === 0 ? 1 : sum / n;
 }
+
+// Drop points closer than `minSpacing` to the last kept point.
+//
+// Why: Apple Pencil reports up to 240 positions a second, each with a tiny
+// bit of sensor jitter. Measuring length along hundreds of jittery points
+// adds up all that zig-zag, so a stroke can measure 1.5-2x its real length
+// and fail the length check. Thinning the points first removes the jitter
+// without changing the stroke's shape.
+export function simplify(points, minSpacing) {
+  if (points.length < 3) return points.slice();
+  const out = [points[0]];
+  for (let i = 1; i < points.length - 1; i++) {
+    if (distance(points[i], out[out.length - 1]) >= minSpacing) out.push(points[i]);
+  }
+  out.push(points[points.length - 1]); // always keep the real end point
+  return out;
+}
