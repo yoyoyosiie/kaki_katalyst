@@ -1,9 +1,11 @@
-// Downloads KanjiVG stroke files for every character the lessons use.
+// Downloads KanjiVG stroke files for every character the sample lessons use.
 // Run from the repo root:  node tools/fetch-kanjivg.mjs
-// Files already in data/kanjivg/ are skipped.
+// Files already in data/kanjivg/ are skipped. (The repo already bundles every
+// character in Kaishi 1.5k plus all kana; anything missing at runtime is
+// fetched from KanjiVG's GitHub.)
 
 import { existsSync, writeFileSync } from 'node:fs';
-import { LESSONS } from '../js/lessons.js';
+import { SAMPLE_LESSONS as LESSONS } from '../js/lessons.js';
 import { parseFurigana, isWritten } from '../js/furigana.js';
 
 const BASE = 'https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/';

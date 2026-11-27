@@ -30,8 +30,21 @@ In sentences:
 
 Finished kanji are remembered on the device (browser storage).
 
-Content: sample lessons in `js/lessons.js` for now; the Kaishi 1.5k deck
-comes next, introducing kanji in deck order.
+## Loading the Kaishi 1.5k deck
+
+The app ships with 3 sample lessons. To use Kaishi:
+
+1. In Anki (desktop): **File → Export**, choose **Notes in Plain Text (.txt)**,
+   pick the Kaishi 1.5k deck, and keep "Include HTML and media references"
+   ticked. Save the file somewhere your iPad can reach (e.g. iCloud Drive).
+2. In the app, press **Import deck** and pick that file.
+
+Each kanji becomes one lesson, in the order it first appears in a word of
+the deck, using that card's sentence and furigana. Lessons are saved in this
+browser only (do it once per device). The deck never goes into this repo.
+
+Columns are recognised by content (furigana, English), not position, so
+other furigana decks in the same format should work too.
 
 ## Running it locally
 
@@ -62,13 +75,14 @@ There are no dependencies to install.
 | `js/matcher.js` | Decides if a stroke is right, and why not (order, direction, position, shape, length). |
 | `js/session.js` | One character being written: next stroke, mistakes, blocking vs feedback-only. |
 | `js/furigana.js` | Parses Anki furigana (`食[た]べる`) and decides which words become hiragana. |
-| `js/lessons.js` | The lesson list (sample lessons for now). |
-| `js/progress.js` | Remembers finished kanji on the device. |
+| `js/deck.js` | Reads an Anki plain-text export and turns it into lessons. |
+| `js/lessons.js` | Sample lessons, used until you import a deck. |
+| `js/progress.js` | Remembers finished kanji and imported lessons on the device. |
 | `js/kanjivg.js` | Loads a kanji's strokes from a KanjiVG SVG file. |
 | `js/inkpad.js` | The writing canvas: pen input, palm rejection, drawing. |
 | `js/app.js` | The lesson flow and page UI. Add `?debug=1` to the URL for grading numbers. |
 | `tools/fetch-kanjivg.mjs` | Downloads stroke files for every character the lessons use. |
-| `data/kanjivg/` | KanjiVG stroke files, named by code point (`098df.svg` = 食). |
+| `data/kanjivg/` | KanjiVG stroke files for every character in Kaishi 1.5k plus all kana, named by code point (`098df.svg` = 食). Anything else is fetched from KanjiVG's GitHub. |
 
 ### How a stroke is graded
 

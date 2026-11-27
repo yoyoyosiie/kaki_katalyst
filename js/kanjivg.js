@@ -27,9 +27,14 @@ export function loadKanji(char, baseUrl = 'data/kanjivg/') {
   return cache.get(char);
 }
 
+// The repo bundles stroke files for every character in Kaishi 1.5k. Anything
+// else is fetched from KanjiVG's own GitHub (needs a connection).
+const REMOTE = 'https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/';
+
 async function fetchKanji(char, baseUrl) {
   const hex = codepointHex(char);
-  const res = await fetch(`${baseUrl}${hex}.svg`);
+  let res = await fetch(`${baseUrl}${hex}.svg`);
+  if (!res.ok) res = await fetch(`${REMOTE}${hex}.svg`).catch(() => res);
   if (!res.ok) throw new Error(`No KanjiVG data for ${char} (${hex}.svg)`);
   const doc = new DOMParser().parseFromString(await res.text(), 'image/svg+xml');
 

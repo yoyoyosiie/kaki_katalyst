@@ -42,17 +42,21 @@ export function plainText(segments) {
 // can't be split per kanji, correct.
 //
 // Returns one entry per writing box:
-//   { char, segment, hidden }
+//   { char, segment, hidden, given }
 //   char:    what to write in the box
 //   segment: index into `segments` (used to show the kanji on reveal)
 //   hidden:  true if this box is hiragana standing in for unknown kanji
+//   given:   true for an unknown kanji the deck gave no reading for; it's
+//            printed in the box rather than written (we can't hide it)
 export function writingBoxes(segments, known) {
   const boxes = [];
+  const isUnknown = (ch) => isKanji(ch) && !known.has(ch);
   segments.forEach((seg, i) => {
-    const unknown = seg.reading && [...seg.text].some((ch) => isKanji(ch) && !known.has(ch));
+    const unknown = Boolean(seg.reading) && [...seg.text].some(isUnknown);
     const chars = unknown ? [...seg.reading] : [...seg.text];
     for (const char of chars) {
-      if (isWritten(char)) boxes.push({ char, segment: i, hidden: Boolean(unknown) });
+      if (!isWritten(char)) continue;
+      boxes.push({ char, segment: i, hidden: unknown, given: !unknown && isUnknown(char) });
     }
   });
   return boxes;

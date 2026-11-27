@@ -1,0 +1,9 @@
+#separator:tab
+#html:true
+#notetype column:1
+#deck column:2
+Kaishi 1.5k	Kaishi 1.5k	私	私[わたし]	I (polite, general)	[sound:kaishi_1.mp3]	<b>私[わたし]</b>はアンです。	I am Ann.	"Can also be read わたくし.	With a tab"	
+Kaishi 1.5k	Kaishi 1.5k	食べる	食[た]べる	to eat	[sound:kaishi_2.mp3]	朝[あさ]ご 飯[はん]を<b> 食[た]べる</b>。	I eat breakfast.		
+Kaishi 1.5k	Kaishi 1.5k	食事	食事[しょくじ]	meal		 食事[しょくじ]の 時間[じかん]です。	It&#39;s time for a meal.		
+Kaishi 1.5k	Kaishi 1.5k	先生	先生[せんせい]	teacher		あの 人[ひと]は<b> 先生[せんせい]</b>です。	That person is a teacher.		
+Kaishi 1.5k	Kaishi 1.5k	今日	今日[きょう]	today		 今日[きょう]は 暑[あつ]い&nbsp;ですね。	It&#39;s hot today, isn&#39;t it?		
